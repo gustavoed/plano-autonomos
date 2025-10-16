@@ -76,11 +76,12 @@ O projeto utiliza Flask e `gunicorn`, o que o torna ideal para o *deploy* em pla
     ```
     (Onde `-w 4` define 4 *workers* para melhor desempenho).
 
-## Estrutura do Projeto
+## Estrutura do Projeto (Revisada)
 
 ```
 .
-├── app.py                  # Aplicação principal Flask com a lógica de conversão embutida
+├── app.py                  # Aplicação principal Flask
+├── converter.py            # Lógica de conversão Excel -> Layout PS.txt (Isolada para evitar erros de importação)
 ├── MODELODEPLANILHA-PLANODESAUDEAUTONOMOS.XLSX # Modelo de planilha para download
 ├── requirements.txt        # Dependências do projeto
 ├── README.md               # Este arquivo
