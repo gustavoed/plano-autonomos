@@ -6,19 +6,25 @@ import re
 # Campo: (Tamanho, Posição Inicial, Tipo de Dado, Coluna Excel Correspondente, Preenchimento)
 # Posições são 1-based.
 LAYOUT_PS = [
-    # 1. TIPO_REGISTRO (Fixo 3)
+    # Campo 001: TIPO_REGISTRO (Fixo 3) - Posição 1, Tamanho 1
     {"campo": "TIPO_REGISTRO", "tamanho": 1, "pos_inicial": 1, "tipo": "Fixo", "valor": "3"},
-    # 2. CPF_AUTONOMO
+    
+    # Campo 002: CPF_AUTONOMO (CPF do Titular) - Posição 2, Tamanho 11
     {"campo": "CPF_AUTONOMO", "tamanho": 11, "pos_inicial": 2, "tipo": "Num", "coluna_excel": "CPF DO AUTÔNOMO"},
-    # 3. CODIGO_PLANO_AUTONOMO
-    {"campo": "CODIGO_PLANO_AUTONOMO", "tamanho": 4, "pos_inicial": 13, "tipo": "AlfaNum", "coluna_excel": "CÓDIGO PLANO "},
-    # 4. VALOR_DESCONTO_AUTONOMO (Mensalidade Titular)
+    
+    # Campo 003: CODIGO_PLANO_AUTONOMO (Plano do Titular) - Posição 13, Tamanho 4
+    {"campo": "CODIGO_PLANO_AUTONOMO", "tamanho": 4, "pos_inicial": 13, "tipo": "AlfaNum", "coluna_excel": "CÓDIGO PLANO"},
+    
+    # Campo 004: VALOR_DESCONTO_AUTONOMO (Mensalidade Titular) - Posição 17, Tamanho 8
     {"campo": "VALOR_DESCONTO_AUTONOMO", "tamanho": 8, "pos_inicial": 17, "tipo": "Valor", "coluna_excel": "MENSALIDADE TITULAR"},
-    # 5. CPF_AUTONOMO_DEPENDENTE
-    {"campo": "CPF_AUTONOMO_DEPENDENTE", "tamanho": 11, "pos_inicial": 25, "tipo": "Num", "coluna_excel": "CPF DO DEPENDENTE "},
-    # 6. CODIGO_PLANO_AUTONOMO_DEPENDENTE
-    {"campo": "CODIGO_PLANO_AUTONOMO_DEPENDENTE", "tamanho": 4, "pos_inicial": 36, "tipo": "AlfaNum", "coluna_excel": "CÓDIGO PLANO "},
-    # 7. VALOR_DESCONTO_AUTONOMO_DEPENDENTE (Mensalidade Dependente)
+    
+    # Campo 005: CPF_AUTONOMO_DEPENDENTE (CPF do Dependente) - Posição 25, Tamanho 11
+    {"campo": "CPF_AUTONOMO_DEPENDENTE", "tamanho": 11, "pos_inicial": 25, "tipo": "Num", "coluna_excel": "CPF DO DEPENDENTE"},
+    
+    # Campo 006: CODIGO_PLANO_AUTONOMO_DEPENDENTE (Plano do Dependente) - Posição 36, Tamanho 4
+    {"campo": "CODIGO_PLANO_AUTONOMO_DEPENDENTE", "tamanho": 4, "pos_inicial": 36, "tipo": "AlfaNum", "coluna_excel": "CÓDIGO PLANO DEPENDENTE"},
+    
+    # Campo 007: VALOR_DESCONTO_AUTONOMO_DEPENDENTE (Mensalidade Dependente) - Posição 40, Tamanho 8
     {"campo": "VALOR_DESCONTO_AUTONOMO_DEPENDENTE", "tamanho": 8, "pos_inicial": 40, "tipo": "Valor", "coluna_excel": "MENSALIDADE DEPENDENTE"},
 ]
 TOTAL_LINE_SIZE = 200
@@ -81,6 +87,16 @@ def convert_excel_to_ps_txt(excel_file):
     # Renomeia colunas para remover espaços extras no final, se houver
     df.columns = [col.strip() for col in df.columns]
     
+    # Trata colunas duplicadas para garantir o mapeamento correto
+    # A coluna 'CÓDIGO PLANO' para o dependente é a segunda com o mesmo nome.
+    # O pandas renomeia a segunda coluna para 'CÓDIGO PLANO.1' (ou similar)
+    
+    # Verifica se a coluna duplicada existe e renomeia para o nome esperado no LAYOUT_PS
+    if 'CÓDIGO PLANO.1' in df.columns:
+        df.rename(columns={'CÓDIGO PLANO.1': 'CÓDIGO PLANO DEPENDENTE'}, inplace=True)
+    elif 'CÓDIGO PLANO 1' in df.columns:
+        df.rename(columns={'CÓDIGO PLANO 1': 'CÓDIGO PLANO DEPENDENTE'}, inplace=True)
+            
     # Limpeza de dados (removendo linhas totalmente vazias)
     df.dropna(how='all', inplace=True)
     
@@ -127,4 +143,3 @@ def convert_excel_to_ps_txt(excel_file):
     
     # Retorna o conteúdo TXT em um objeto BytesIO
     return io.BytesIO(txt_content.encode('utf-8'))
-
